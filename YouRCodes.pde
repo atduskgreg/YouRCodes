@@ -87,7 +87,15 @@ void mousePressed(){
     currentFace = candidateFace;
     app.transitionTo(matchMode);
   }
+  
+  else if(app.isInState(matchMode)){
+    targetFace = candidateFace;
+    candidateFace = new SavedFace();
+    app.transitionTo(targetMode);
+  }
+  
 }
+
 
 void oscEvent(OscMessage theOscMessage) {
   /* with theOscMessage.isPlugged() you check if the osc message has already been

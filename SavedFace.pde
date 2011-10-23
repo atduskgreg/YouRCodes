@@ -10,7 +10,7 @@ class SavedFace {
   float threshold;
   
   SavedFace(){
-    threshold = 22;
+    threshold = 2;
   }
   
   String print(){
@@ -18,19 +18,21 @@ class SavedFace {
   }
   
   boolean match(SavedFace otherFace){
-    return score(otherFace) <= threshold;
+    return score(otherFace) <= threshold;  
   }
   
+  // TODO:
+  // - sum of squares of differences
   float score(SavedFace otherFace){
     float error = 0;
-    error += abs(otherFace.mouthWidth - mouthWidth );
-    error += abs(otherFace.mouthHeight - mouthHeight );
-    error += abs(otherFace.eyebrowLeft - eyebrowLeft );
-    error += abs(otherFace.eyebrowRight - eyebrowRight );
-    error += abs(otherFace.eyeLeft - eyeLeft );
-    error += abs(otherFace.eyebrowLeft - eyeRight );
-    error += abs(otherFace.eyebrowRight - jaw );
-    error += abs(otherFace.eyeLeft - nostrils );  
+    error += sq(otherFace.mouthWidth - mouthWidth );
+    error += sq(otherFace.mouthHeight - mouthHeight );
+    error += sq(otherFace.eyebrowLeft - eyebrowLeft );
+    error += sq(otherFace.eyebrowRight - eyebrowRight );
+    error += sq(otherFace.eyeLeft - eyeLeft );
+    error += sq(otherFace.eyeRight - eyeRight );
+    error += sq(otherFace.jaw - jaw );
+    error += sq(otherFace.nostrils - nostrils );  
     return error; 
   }
   
