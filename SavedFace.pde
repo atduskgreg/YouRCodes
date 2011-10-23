@@ -9,7 +9,9 @@ class SavedFace {
   float nostrils;
   float threshold;
   
-  SavedFace(){}
+  SavedFace(){
+    threshold = 22;
+  }
   
   String print(){
     return "mW: " + mouthWidth + "\tmH: " + mouthHeight + "\tebR: " + eyebrowRight + "\tebL: " + eyebrowLeft + "\teL: " + eyeLeft + "\teR: " + eyeRight + "\tj: " + jaw + "\tn: " + nostrils;

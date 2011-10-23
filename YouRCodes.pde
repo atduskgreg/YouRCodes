@@ -1,16 +1,23 @@
 import oscP5.*;
+import fsm.*;
+
+FSM app;
+State targetMode = new State(this, "enterTarget", "doTarget", "exitTarget");
+State matchMode = new State(this, "enterMatch", "doMatch", "exitMatch");
+
 
 OscP5 oscP5;
 SavedFace targetFace;
 SavedFace candidateFace;
-
-boolean needsSave = false;
+SavedFace currentFace;
 
 
 void setup() {
   size(1000,400);
   frameRate(25);
   background(0);
+  
+  app = new FSM(targetMode);
 
   oscP5 = new OscP5(this,8338);
   oscP5.plug(this,"mouthWidthReceived","/gesture/mouth/width");
@@ -24,11 +31,15 @@ void setup() {
 
   targetFace = new SavedFace();  
   candidateFace = new SavedFace();  
-
+  
+  currentFace = targetFace;
+  
+  enterTarget(); // FSM bug  
 }
 
-void draw() {
-  background(0);  
+void draw() {  
+  app.update();
+
   fill(255);
   text("target: " + targetFace.print(), 10,20);
   text("candidate: " + candidateFace.print(), 10,50);
@@ -36,39 +47,48 @@ void draw() {
   float score = targetFace.score(candidateFace);
   textSize(20);
   text("score: " + score, 10, 70);
+  
 }
 
 public void mouthWidthReceived(float w){
-  targetFace.mouthWidth = w;
+   currentFace.mouthWidth = w;
 }
 
 public void mouthHeightReceived(float h){
-  targetFace.mouthHeight = h;
+  currentFace.mouthHeight = h;
 }
 
 public void eyebrowLeftReceived(float h){
-  targetFace.eyebrowLeft = h;
+  currentFace.eyebrowLeft = h;
 }
 
 public void eyebrowRightReceived(float h){
-  targetFace.eyebrowRight = h;
+  currentFace.eyebrowRight = h;
 }
 
 public void eyeLeftReceived(float h){
-  targetFace.eyeLeft = h;
+  currentFace.eyeLeft = h;
 }
 
 public void eyeRightReceived(float h){
-  targetFace.eyeRight = h;
+  currentFace.eyeRight = h;
 }
 
 public void jawReceived(float h){
-  targetFace.jaw = h;
+  currentFace.jaw = h;
 }
 
 public void nostrilsReceived(float h){
-  targetFace.nostrils = h;
+  currentFace.nostrils = h;
 }
+
+void mousePressed(){
+  if(app.isInState(targetMode)){
+    currentFace = candidateFace;
+    app.transitionTo(matchMode);
+  }
+}
+
 void oscEvent(OscMessage theOscMessage) {
   /* with theOscMessage.isPlugged() you check if the osc message has already been
    * forwarded to a plugged method. if theOscMessage.isPlugged()==true, it has already 
@@ -83,8 +103,6 @@ void oscEvent(OscMessage theOscMessage) {
   }
 }
 
-void mousePressed(){
-  needsSave = true;
-}
+
 
 
