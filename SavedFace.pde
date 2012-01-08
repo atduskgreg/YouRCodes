@@ -9,6 +9,8 @@ class SavedFace {
   float nostrils;
   float threshold;
   
+  PImage img;
+  
   SavedFace(){
     threshold = 2;
   }
@@ -19,7 +21,6 @@ class SavedFace {
 
     for(int i = 0; i < xml.getChildCount() - 1; i++){
       XML featureNode = xml.getChild(i);
-            println(featureNode.getName());    
       if(featureNode.getName() == null){
        continue;
       }
@@ -47,6 +48,12 @@ class SavedFace {
        if(featureNode.getName().equals("nostrils")){
         nostrils = float(featureNode.getContent());
       }
+      
+     if(featureNode.getName().equals("imagePath")){
+       println(featureNode.getContent());
+        img = loadImage(featureNode.getContent());
+      }
+      
 
 
       

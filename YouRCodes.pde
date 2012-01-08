@@ -1,3 +1,7 @@
+// TODO:
+// - get multiple face checking working
+// - check to see when we lose a face and consider no-face a fail
+
 import oscP5.*;
 import fsm.*;
 
@@ -5,12 +9,12 @@ FSM app;
 State targetMode = new State(this, "enterTarget", "doTarget", "exitTarget");
 State matchMode = new State(this, "enterMatch", "doMatch", "exitMatch");
 
+String currentState;
 
 OscP5 oscP5;
 SavedFace targetFace;
 SavedFace candidateFace;
 SavedFace currentFace;
-
 
 void setup() {
   size(1000, 400);
@@ -37,7 +41,10 @@ void setup() {
   enterTarget(); // FSM bug
 }
 
+
+
 void draw() {  
+
   app.update();
 
   fill(255);
@@ -47,6 +54,10 @@ void draw() {
   float score = targetFace.score(candidateFace);
   textSize(20);
   text("score: " + score, 10, 70);
+  
+  textSize(10);  
+  text("currentState: " + currentState, 10, 200);
+
 }
 
 public void mouthWidthReceived(float w) {
@@ -81,10 +92,16 @@ public void nostrilsReceived(float h) {
   currentFace.nostrils = h;
 }
 
+void keyPressed(){
+  if(key == 'l'){
+    println("loading target face");
+    targetFace.load(this, "yourcode_elliot.xml");
+  }
+}
+
 void mousePressed() {
   if (app.isInState(targetMode)) {
     currentFace = candidateFace;
-
     app.transitionTo(matchMode);
   }
 
@@ -99,8 +116,7 @@ void mousePressed() {
 
 void oscEvent(OscMessage theOscMessage) {
   if (theOscMessage.isPlugged()==false) {
+    //println("UNPLUGGED: " + theOscMessage);
   }
 }
-
-
 
