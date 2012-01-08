@@ -1,5 +1,4 @@
 void enterMatch(){
-
 }
 
 void doMatch(){
