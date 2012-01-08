@@ -1,27 +1,21 @@
 // TODO:
-// - get multiple face checking working
 // - check to see when we lose a face and consider no-face a fail
 
 import oscP5.*;
-import fsm.*;
-
-FSM app;
-State targetMode = new State(this, "enterTarget", "doTarget", "exitTarget");
-State matchMode = new State(this, "enterMatch", "doMatch", "exitMatch");
-
-String currentState;
 
 OscP5 oscP5;
-SavedFace targetFace;
-SavedFace candidateFace;
 SavedFace currentFace;
+ArrayList<SavedFace> candidateFaces;
+
+PImage matchedImage;
+
+String[] faces = {"elliot", "greg", "james"};
 
 void setup() {
-  size(1000, 400);
-  frameRate(25);
+  size(575, 544);
+  frameRate(30);
   background(0);
 
-  app = new FSM(targetMode);
 
   oscP5 = new OscP5(this, 8338);
   oscP5.plug(this, "mouthWidthReceived", "/gesture/mouth/width");
@@ -33,30 +27,44 @@ void setup() {
   oscP5.plug(this, "jawReceived", "/gesture/jaw");
   oscP5.plug(this, "nostrilsReceived", "/gesture/nostrils");
 
-  targetFace = new SavedFace();  
-  candidateFace = new SavedFace();  
-
-  currentFace = targetFace;
-
-  enterTarget(); // FSM bug
+  currentFace = new SavedFace(); 
+  
+  candidateFaces = new ArrayList();
+  
+  for(int i = 0; i < faces.length; i++){
+    SavedFace f = new SavedFace();
+    f.load(this, "yourcode_"+faces[i]+".xml");
+    println("loading: yourcode_"+faces[i]+".xml" );
+    candidateFaces.add(f);
+  }
 }
 
 
 
 void draw() {  
-
-  app.update();
-
+  background(0);
   fill(255);
-  text("target: " + targetFace.print(), 10, 20);
-  text("candidate: " + candidateFace.print(), 10, 50);
-
-  float score = targetFace.score(candidateFace);
-  textSize(20);
-  text("score: " + score, 10, 70);
+  String output = "";
+  for(int i = 0; i < candidateFaces.size(); i++){
+    SavedFace testFace = candidateFaces.get(i);
+    output += "Face " + i + ": " + testFace.score(currentFace) + "\n";
+    if(testFace.match(currentFace)){
+      matchedImage = testFace.img;
+    }
+  }
   
-  textSize(10);  
-  text("currentState: " + currentState, 10, 200);
+  text(output, 10, 40);
+  
+  if(matchedImage != null){
+    image(matchedImage, width-408, 0, 408, 544);
+  } else {
+    fill(175);
+    stroke(0);
+    rect(width-408, 0, 408, 544);
+    fill(0);
+    text("no image", 408/2 + 125, height/2);
+  }
+  
 
 }
 
@@ -92,27 +100,7 @@ public void nostrilsReceived(float h) {
   currentFace.nostrils = h;
 }
 
-void keyPressed(){
-  if(key == 'l'){
-    println("loading target face");
-    targetFace.load(this, "yourcode_elliot.xml");
-  }
-}
 
-void mousePressed() {
-  if (app.isInState(targetMode)) {
-    currentFace = candidateFace;
-    app.transitionTo(matchMode);
-  }
-
-  else if (app.isInState(matchMode)) {
-    targetFace = candidateFace;
-    targetFace.save();
-    candidateFace = new SavedFace();
-
-    app.transitionTo(targetMode);
-  }
-}
 
 void oscEvent(OscMessage theOscMessage) {
   if (theOscMessage.isPlugged()==false) {
