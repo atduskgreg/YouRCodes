@@ -1,5 +1,6 @@
 // TODO:
-// - check to see when we lose a face and consider no-face a fail
+// - implement faceactions on detection
+// - action to add a face?
 
 import oscP5.*;
 
@@ -7,15 +8,18 @@ OscP5 oscP5;
 SavedFace currentFace;
 ArrayList<SavedFace> candidateFaces;
 
-PImage matchedImage;
+SavedFace matchedFace;
 
-String[] faces = {"elliot", "greg", "james"};
+String[] faces = {
+  "elliot", "greg", "james"
+};
+
+boolean hasFace = false;
 
 void setup() {
   size(575, 544);
   frameRate(30);
   background(0);
-
 
   oscP5 = new OscP5(this, 8338);
   oscP5.plug(this, "mouthWidthReceived", "/gesture/mouth/width");
@@ -26,12 +30,16 @@ void setup() {
   oscP5.plug(this, "eyeRightReceived", "/gesture/eye/right");
   oscP5.plug(this, "jawReceived", "/gesture/jaw");
   oscP5.plug(this, "nostrilsReceived", "/gesture/nostrils");
+  oscP5.plug(this, "found", "/found");
+  oscP5.plug(this, "poseOrientation", "/pose/orientation");
+  oscP5.plug(this, "posePosition", "/pose/position");
+  oscP5.plug(this, "poseScale", "/pose/scale");
 
   currentFace = new SavedFace(); 
-  
+
   candidateFaces = new ArrayList();
-  
-  for(int i = 0; i < faces.length; i++){
+
+  for (int i = 0; i < faces.length; i++) {
     SavedFace f = new SavedFace();
     f.load(this, "yourcode_"+faces[i]+".xml");
     println("loading: yourcode_"+faces[i]+".xml" );
@@ -40,32 +48,57 @@ void setup() {
 }
 
 
+void mouseClicked() {
+  if (matchedFace !=null && matchedFace.action !=null) {
+    matchedFace.action.execute();
+  }
+}
 
 void draw() {  
   background(0);
   fill(255);
   String output = "";
-  for(int i = 0; i < candidateFaces.size(); i++){
-    SavedFace testFace = candidateFaces.get(i);
-    output += "Face " + i + ": " + testFace.score(currentFace) + "\n";
-    if(testFace.match(currentFace)){
-      matchedImage = testFace.img;
-    }
-  }
+
+  boolean hasMatch = false;
   
+  String action = "";
+
+  if (hasFace) {
+    for (int i = 0; i < candidateFaces.size(); i++) {
+      SavedFace testFace = candidateFaces.get(i);
+      output += "Face " + i + ": " + testFace.score(currentFace) + "\n";
+      if (testFace.match(currentFace)) {
+        matchedFace = testFace;
+        hasMatch = true;
+      }
+    }
+    
+    if(hasMatch && matchedFace.action != null){
+      action += "\nAction:\n" + matchedFace.action.argument;
+    }
+  } 
+  else {
+    output += "NO FACE";
+  }
+
+  textSize(12);
   text(output, 10, 40);
   
-  if(matchedImage != null){
-    image(matchedImage, width-408, 0, 408, 544);
-  } else {
+  textSize(10);
+  text(action, 10, 150);
+
+  if (hasMatch) {
+    image(matchedFace.img, width-408, 0, 408, 544);
+  } 
+  else {
     fill(175);
     stroke(0);
     rect(width-408, 0, 408, 544);
     fill(0);
     text("no image", 408/2 + 125, height/2);
-  }
-  
+    
 
+  }
 }
 
 public void mouthWidthReceived(float w) {
@@ -100,11 +133,28 @@ public void nostrilsReceived(float h) {
   currentFace.nostrils = h;
 }
 
+public void found(int i) {
+  hasFace = (i == 1);
+}
+
+public void posePosition(float x, float y) {
+  // println("position\tX: " + x + " Y: " + y );
+}
+
+public void poseScale(float s) {
+  // println("scale: " + s);
+}
+
+public void poseOrientation(float x, float y, float z) {
+  //  println("orientation\tX: " + x + " Y: " + y + " Z: " + z);
+}
+
+
 
 
 void oscEvent(OscMessage theOscMessage) {
   if (theOscMessage.isPlugged()==false) {
-    //println("UNPLUGGED: " + theOscMessage);
+    println("UNPLUGGED: " + theOscMessage);
   }
 }
 

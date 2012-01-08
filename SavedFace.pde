@@ -11,6 +11,8 @@ class SavedFace {
   
   PImage img;
   
+  FaceAction action;
+  
   SavedFace(){
     threshold = 2;
   }
@@ -54,6 +56,9 @@ class SavedFace {
         img = loadImage(featureNode.getContent());
       }
       
+      if(featureNode.getName().equals("url")){
+        action = new FaceAction("Link", featureNode.getContent());
+      }
 
 
       
