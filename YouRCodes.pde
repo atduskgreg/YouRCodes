@@ -11,7 +11,7 @@ ArrayList<SavedFace> candidateFaces;
 SavedFace matchedFace;
 
 String[] faces = {
-  "elliot", "greg", "james"
+  "bazaar", "bicego", "aspinal"
 };
 
 boolean hasFace = false;
@@ -20,6 +20,17 @@ void setup() {
   size(575, 544);
   frameRate(30);
   background(0);
+
+   currentFace = new SavedFace(); 
+
+  candidateFaces = new ArrayList();
+
+  for (int i = 0; i < faces.length; i++) {
+    SavedFace f = new SavedFace();
+    f.load(this, "yourcode_"+faces[i]+".xml");
+    println("loading: yourcode_"+faces[i]+".xml" );
+    candidateFaces.add(f);
+  }
 
   oscP5 = new OscP5(this, 8338);
   oscP5.plug(this, "mouthWidthReceived", "/gesture/mouth/width");
@@ -35,16 +46,7 @@ void setup() {
   oscP5.plug(this, "posePosition", "/pose/position");
   oscP5.plug(this, "poseScale", "/pose/scale");
 
-  currentFace = new SavedFace(); 
-
-  candidateFaces = new ArrayList();
-
-  for (int i = 0; i < faces.length; i++) {
-    SavedFace f = new SavedFace();
-    f.load(this, "yourcode_"+faces[i]+".xml");
-    println("loading: yourcode_"+faces[i]+".xml" );
-    candidateFaces.add(f);
-  }
+ 
 }
 
 
@@ -63,13 +65,19 @@ void draw() {
   
   String action = "";
 
+  float bestScore = 20.0;
+
   if (hasFace) {
     for (int i = 0; i < candidateFaces.size(); i++) {
       SavedFace testFace = candidateFaces.get(i);
       output += "Face " + i + ": " + testFace.score(currentFace) + "\n";
       if (testFace.match(currentFace)) {
-        matchedFace = testFace;
         hasMatch = true;
+        float currentScore = testFace.score(currentFace);
+        if(currentScore < bestScore){
+          matchedFace = testFace;
+          bestScore = bestScore;
+        }
       }
     }
     
@@ -88,7 +96,9 @@ void draw() {
   text(action, 10, 150);
 
   if (hasMatch) {
-    image(matchedFace.img, width-408, 0, 408, 544);
+    if(matchedFace.img != null){
+      image(matchedFace.img, width-408, 0, 408, 544);
+    }
   } 
   else {
     fill(175);
